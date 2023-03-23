@@ -13,8 +13,10 @@ classifiers = ["License :: OSI Approved :: MIT License"]
 dependencies = [
     "aiozmq",
     "minicli",
+    "msgpack",
+    "pyjwt",
+    "tomli",
     "websockets",
-    "msgpack"
 ]
 
 [project.scripts]
