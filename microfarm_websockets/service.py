@@ -3,6 +3,7 @@ import asyncio
 import websockets
 import typing as t
 import json
+import logging
 from pathlib import Path
 from aiozmq import rpc
 from minicli import run, cli
@@ -33,10 +34,6 @@ class WebsocketServer(rpc.AttrHandler):
     def broadcast(self, message: str) -> bool:
         websockets.broadcast(self.connections.values(), message)
         return True
-
-    def decode_jwt(self, token: str) -> dict:
-        try:
-            return jwt.decode(token, self.public_key, algorithms=["RS256"])
 
     async def __call__(self, websocket):
         token = await asyncio.wait_for(websocket.recv(), timeout=2)
@@ -79,8 +76,10 @@ async def serve(config: Path, public_key: Path):
 
     service = WebsocketServer(public_key_pem)
     server = await rpc.serve_rpc(service, bind=settings['rpc']['bind'])
-    async with websockets.serve(
-            service, settings['ws']['host'], settings['ws']['port']):
+    print(f" [1] Websockets RPC Service ({settings['rpc']['bind']})")
+    async with websockets.serve(service, **settings['ws']):
+        print(" [2] Websockets WS Service "
+              f"({settings['ws']['host']}:{settings['ws']['port']})")
         await server.wait_closed()
 
 
